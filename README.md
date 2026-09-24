@@ -11,6 +11,10 @@ This plugin bundles the Simple Host skills and the Simple Host connector (`https
 /plugin install simple-host@simple-host
 ```
 
+## GitHub Copilot
+
+This repository is also an [Agent Plugins](https://agent-plugins.org) package (`plugin.json`, `mcp.json`, `skills/` at the root), so Copilot can install it from the Awesome Copilot marketplace once listed. To connect Copilot in VS Code by hand: run **MCP: Add Server** from the Command Palette, choose **HTTP**, paste `https://simple-host.app/mcp`, name it `simple-host`, and sign in when asked.
+
 ## Source
 
 Generated from [github.com/vineetu/simple-host](https://github.com/vineetu/simple-host) (`plugins/simple-host`). Please open issues there.
