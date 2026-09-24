@@ -1,0 +1,18 @@
+{
+  "name": "simple-host",
+  "owner": {
+    "name": "Vineet Sriram",
+    "url": "https://simple-host.app"
+  },
+  "metadata": {
+    "description": "Simple Host for Claude: describe a website and it goes online at its own address."
+  },
+  "plugins": [
+    {
+      "name": "simple-host",
+      "source": "./",
+      "description": "Describe a website and it goes online at its own address. Claude builds the site and publishes it to simple-host.app through the Simple Host connector: pages, a small shared backend for saves and sign-ups, visitor analytics, and your own domain when you want one.",
+      "version": "0.17.1"
+    }
+  ]
+}
