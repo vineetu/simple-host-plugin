@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "simple-host",
-  "version": "0.19.0",
+  "version": "0.19.1",
   "description": "Describe a website and it goes online at its own address. Claude builds the site and publishes it to simple-host.app through the Simple Host connector: pages, a small shared backend for saves and sign-ups, visitor analytics, and your own domain when you want one.",
   "author": {
     "name": "Vineet Sriram",
