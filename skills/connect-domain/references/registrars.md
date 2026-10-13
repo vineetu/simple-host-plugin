@@ -23,9 +23,7 @@ Rules that apply everywhere:
 - **Add, don't replace** — except at the apex, where a parking/default A or ALIAS at `@`
   already exists and must be **edited** (or removed and re-added), not duplicated. Leave MX,
   TXT, everything else alone.
-- **Credentials:** if the user hands you an API key, use it for the one call (plus a read-back
-  to confirm) and forget it. Never write it into the site, the repo, a config file, or a
-  message. Ask permission naming the exact record before the write (skill step 3b).
+- **Credentials:** use the registrar's trusted dashboard, or an already configured local DNS client without displaying its credential. Never ask for a key in chat. Ask permission naming the exact record before the write (skill step 3b).
 - **Check it landed at the authoritative server, not a public resolver.** `8.8.8.8` / `1.1.1.1`
   may hold an older answer (often a parking wildcard) for the old TTL — a "wrong" answer there
   right after the change means cache, not a mistake. Query the registrar's nameserver directly.
@@ -237,8 +235,8 @@ Route 53, Namecheap, Google/Squarespace, etc. all show up here), then:
 - **Cloudflare specifically:** set the record to **DNS only** (grey cloud), not proxied — a
   proxied record hides the origin from our verifier and the cert check. Cloudflare flattens
   CNAME at the apex, so there a `CNAME @ → cname.simple-host.app` is acceptable.
-- **API:** only if the user offers credentials and you can find the vendor's current docs;
-  otherwise hand over the record. Same rule: one write, a read-back, forget the key.
+- **API:** only with a locally configured DNS client and the vendor's current docs;
+  otherwise hand over the records for the person to add in the trusted registrar dashboard. Never request or process registrar credentials in chat.
 - **Check it landed:** `dig NS <zone> +short`, then `dig +short <host> @<that nameserver>` and
   `dig +short TXT _simple-host.<host> @<that nameserver>`.
   Only after the authoritative server answers correctly is a wrong answer from `8.8.8.8` a

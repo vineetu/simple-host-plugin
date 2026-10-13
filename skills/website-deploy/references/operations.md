@@ -27,53 +27,43 @@ a new site is created with the old name. Use `site_url` from the response.
 
 `PATCH /v1/sites/<sitename>` with `{"offline":true}` takes the site offline:
 every address of it shows a plain "This site is offline" page, and visitor
-saves (private lists too), visitors' reads of its saved data and lists, and
-visitor sign-in are refused (403 `site_offline`). Use it when an event is over or a form must
+saves (an existing site's private lists too — existing sites only, see
+`references/backend.md`), visitors' reads of its storage resources and saved
+data, and visitor sign-in are refused (403 `site_offline`). Use it when an event is over or a form must
 stop taking entries. Nothing is deleted, and the owner's key still deploys,
 reads and writes. `{"offline":false}` puts it back online; `GET /v1/sites`
 marks an offline site `"offline": true`. Confirm with the person first.
 
 ## Site passcode
 
-The owner may put one passcode on a whole site. Every address of it then shows a
-plain "This site is protected" page until the visitor enters the passcode. That
-browser stays let in on that address until the passcode changes or the owner
-signs everyone out. The `.app` and `.site` addresses each need their own unlock.
+The owner manages the whole-site passcode in the trusted Simple Host dashboard. It is shared site access, not per-person privacy. Never request, generate, read back or transmit a passcode in chat. Existing storage resources may inherit that gate or explicitly bypass it through their resource policy. API and connector passcode operations remain available to locally configured clients, but this skill does not invoke them.
 
-**Ask the person first**, every time: before setting, changing or removing a
-passcode, and before signing everyone out. Let them choose the passcode: any 6
-or more characters, no format rules, digits only is fine. If they ask you to
-pick, choose 6 random digits and tell them what it is. A passcode typed in the
-chat stays in the conversation. Before setting it, tell them, in these words:
+## Named viewers
 
-> A passcode keeps out people who don’t have it: search engines, link previews,
-> and anyone who finds or is forwarded the link without it. Anyone you give it
-> to can open the site and pass it on. It is not a login, it doesn’t tell you
-> who visited, and it doesn’t make saved data private per person. Changing it
-> signs everyone out. Pages people already opened may stay in their browser.
-> Simple Host can still read the site.
+Who can open a site: `anyone` (the default) or `specific`, only the owner and the
+people named by email. Each named person opens the site's address and signs in there
+with that email (an emailed code, or Google for a Google address); anyone else sees
+a sign-in page, or "This site is private" with Switch account and Sign out. The
+site's saved data is closed to them too, whatever a resource's `site_passcode`
+says. Ask the person first and use exactly the emails they gave.
 
-Connector: `set_site_passcode` with `site` and `action`: `set` (with
-`passcode`), `remove`, `sign_out_everyone` or `read`. API, with the owner's key
-(a deploy-only key is refused):
+```
+POST /v1/sites/<site>/viewers      {"emails":["mom@example.com","dad@example.com"]}
+GET  /v1/sites/<site>/access       -> {"access","viewers":[{"email","added_at"}],"viewer_limit","passcode_protected"}
+DELETE /v1/sites/<site>/viewers/<email>
+PUT  /v1/sites/<site>/access       {"access":"anyone"}   (or "specific")
+```
 
-- `PUT /v1/sites/<sitename>/lock` with `{"passcode":"..."}`, or
-  `{"generate":true}` for 6 random digits. The answer carries the passcode.
-  The same passcode again changes nothing; a different one signs everyone out.
-- `GET /v1/sites/<sitename>/lock` reads it back (`passcode_protected`,
-  `passcode`, `passcode_set_at`).
-- `DELETE /v1/sites/<sitename>/lock` removes it.
-- `POST /v1/sites/<sitename>/lock/sign-out-everyone` makes every visitor enter
-  it again.
-
-`GET /v1/sites` marks such a site `"passcode_protected": true`, and it leaves
-the person's public page. The owner's key and the connector keep reading and
-writing its data. Its pages read and save only once the visitor is let in
-(otherwise 403 `site_locked`); pages on its allowed origins cannot read it.
-Preview links still open. There is no end date: to close it for good, take it
-offline or delete it. `409 passcodes_not_enabled`: this server has not switched
-passcodes on. `409 passcode_needs_own_address`: every site on this server shares
-one address, so a passcode cannot be set. Tell the person either plainly.
+Connector: `grant_site_viewer` (names them and turns it on in one call),
+`list_site_viewers`, `revoke_site_viewer`, `set_site_access`. A removed person is
+refused on their next request; `anyone` keeps the list for later. Emails are
+matched exactly after trimming and lower-casing; at most 50 per site
+(`SITE_VIEWERS_MAX`). The owner can always open the site (signed in there with
+their account email); the owner's key, the connector and previews keep working.
+A site has named viewers or a passcode, never both (409 `passcode_set` or
+`named_viewers_set`). 409 `named_viewers_need_own_address`: every site on this
+server shares one address. After turning it on, tell the person to send the
+people the site's address and to sign in there with the email they named.
 
 ## API keys: list, name, revoke, sign out everywhere
 
@@ -107,7 +97,7 @@ The person sees and manages the same list in the **Keys** panel of their page
 `X-API-Key`), `invalid_api_key` (revoked, signed out, or never valid: sign in
 again for a new key), `key_expired` (past its chosen expiry) or
 `key_expired_idle`. A key unused for 180 days stops working. For either expiry,
-ask the person for a new key from the Keys panel; do not retry.
+direct the person to the trusted Keys panel to reconfigure the local client; do not ask for a key in chat or retry.
 
 ## Deploy from CI (GitHub Actions)
 
@@ -170,9 +160,9 @@ Read a retained version's files (owner API key required):
 
 ```bash
 curl -fsS "https://simple-host.app/v1/sites/<sitename>/versions/<n>/files" \
-  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.7"
+  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.43"
 curl -fsS "https://simple-host.app/v1/sites/<sitename>/versions/<n>/files/index.html" \
-  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.7"
+  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.43"
 ```
 
 The first call returns version metadata and files sorted by relative path with byte
@@ -180,8 +170,8 @@ sizes. The second streams the file with sandbox CSP. Pruned versions return 404.
 
 ## Versions kept
 
-Every deploy stores a full copy of the site, and every version is kept unless
-the server or the site says otherwise. A site that is republished on every
+Every deploy stores a full copy. Hosted Simple Host normally keeps your 4 latest
+versions; only operator-allowed accounts can set their own count. A site that is republished on every
 change (a photo library, a page an app rewrites after each edit) can hold many
 times its own size in history. Set how many versions it keeps:
 
@@ -192,7 +182,7 @@ X-API-Key: <api_key>
 ```
 
 `N` from 1 to 1000 keeps the newest `N` plus always the live one; `0` goes back
-to the server's setting. It applies at once: older versions are deleted for good
+to the account default (KEEP_VERSIONS_OVERRIDES), else the server's setting. It applies at once: older versions are deleted for good
 (files and history; the answer lists `removed_versions`), and every later deploy
 removes whatever falls outside it. `GET /v1/sites` shows `keep_versions` on a
 site that has it set. Lowering it deletes history that cannot be rolled back
@@ -205,7 +195,9 @@ it (403 `deploy_only_key`); use a full key.
 DELETE /v1/sites/<sitename>
 ```
 
-Takes the site offline at once, with every version, its state and collections.
+Takes the site offline at once, with every version, its storage resources and,
+on an existing site, its state and collections (existing sites only — see
+`references/backend.md`).
 It stays in Recently deleted for 7 days, then it is removed for good. Confirm
 with the user in plain language before calling it, and say what goes offline.
 Until it is removed its name stays taken: creating a site with that name answers
@@ -280,14 +272,18 @@ GET /v1/sites/<sitename>/export.tar.gz          (X-API-Key)
 POST /v1/sites/<sitename>/export-link           (X-API-Key) → {"url", "expires_at"}
 ```
 
-The archive holds the live files (`<site>/files/…`), the saved state
-(`<site>/state.json`) and every collection's items (`<site>/collections.json`,
-private lists included). The link form (connector: `export_site`) opens the same
-archive without a key for 10 minutes: give it to the person to click, never post
-it publicly, and make a new one if it has expired.
+The archive holds the live files (`<site>/files/…`), the storage resources
+(`<site>/storage/resources.json`, `kv.json`, `file-writers.json`, and the SQLite
+databases under `<site>/storage/runtime/`) and, on an existing site, the saved
+state (`<site>/state.json`) and every collection's items
+(`<site>/collections.json`, private lists included — existing sites only). The
+link form (connector: `export_site`) opens the same archive without a key for
+10 minutes: give it to the person to click, never post it publicly, and make a
+new one if it has expired.
 
 Each entry in `collections.json` is `{id, created_at, submitted_by, data}`
-(`submitted_by` only on private lists).
+(`submitted_by` only on private lists; existing sites only, see
+`references/backend.md`).
 
 ## The person's whole account: download or delete
 
@@ -383,14 +379,21 @@ collections work either way: visitors sign in with Google or an emailed code on
 the site's own address, and every save from a page needs a signed-in visitor
 (see `backend.md`). Agents write with the site owner's API key.
 
-## Private collections
+## Private collections (existing sites only)
+
+The connector no longer offers tools for any of this (no `declare_data`,
+`list_data`, `set_collection_privacy`); use the REST routes below with the
+owner's API key, only to maintain an existing site that already has one. For a
+new site, use a SQLite resource with `read:"own"` or `read:"owner"` instead —
+see `references/storage.md` and the `website-deploy` skill's "Each person's
+records".
 
 Private Submissions: declare the name with `PUT /v1/sites/<sitename>/data/<name>/kind`
-and `{"kind": "entries"}` (connector: `declare_data`; private is the default), and
-`GET /v1/sites/<sitename>/data` (`list_data`) lists every name with its kind, its
+and `{"kind": "entries"}` (private is the default), and
+`GET /v1/sites/<sitename>/data` lists every name with its kind, its
 settings and who may save. A name nobody declared is Shared (public).
 `PUT /v1/sites/<sitename>/collections/<name>/privacy` with `{"private": true}`
-(connector: `set_collection_privacy`) makes one collection owner-only: visitors
+makes one collection owner-only: visitors
 signed in on the site's own address add to it; only the site owner — and the
 Simple Host operator, for moderation — can read it. Any site can make a list
 private.
@@ -406,8 +409,13 @@ and empties a whole list with `DELETE /v1/sites/<sitename>/collections/<name>` a
 `{"confirm": "<name>"}`. Full flow: `backend.md`.
 
 **Pages are public.** Every deployed page is public to anyone with its
-address, on a custom domain or not, unless the owner puts one passcode on the
-whole site (§Site passcode above). There is no lock on a single page and no
-login to view. If a user asks for a private page, offer the site passcode and
-say plainly what it does and does not do; do not suggest a workaround. Sign-in
-gates saving, not reading pages; only a private collection is owner-only.
+address, on a custom domain or not, unless the owner opens the whole site only
+to named viewers (§Named viewers above) or puts one passcode on it (§Site
+passcode above). There is no lock on a single page. If a user asks for a private
+site, offer named viewers (each person signs in with their own email) or the
+site passcode (one shared code), say plainly what each does, and do not suggest
+a workaround. Sign-in
+gates saving, not reading pages; a storage resource with `read:"own"` or
+`"owner"`, or, on an existing site, a private collection, is the exception.
+
+Hosted retention (2026-10-05): normally 4 latest versions, plus any older live one. Only accounts enabled by `KEEP_VERSIONS_SELF_SET` may use the per-site route or `set_keep_versions`; others receive 403 `keep_versions_fixed`, “Simple Host keeps your 4 latest versions”. `0` uses the account default (`KEEP_VERSIONS_OVERRIDES`), else the instance setting.
