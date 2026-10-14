@@ -56,7 +56,8 @@ preset, sign-in only where the row says, and a line telling the owner how they s
 - **Only some people may open it.** Emails given: `grant_site_viewer` with exactly those; each
   signs in on the site with that email. "With a code" or "a password": `set_site_passcode` with
   their code (or 6 digits you pick and tell them). Neither: ask which. Unlisted (`set_visibility`)
-  only hides a site from their public page; it is not privacy.
+  hides a site from their public page, and from search engines unless the site has its own
+  domain or name; it is not privacy.
 - **A page only the owner uses** (notes, a log, a list of entries). Topic `private` (`admin` to
   manage visitors' entries). The owner signs in on the page with their account email through the
   same sign-in box. Other jobs: the topic from the table.
@@ -104,7 +105,7 @@ the page that uses them. Then the page:
 ## 6. Without the connector
 
 A coding agent with a configured owner credential uses REST (`X-API-Key`, and
-`X-Skill-Version: 0.27.48` on every call) and the recipes at `https://simple-host.app/recipes/<topic>.md`.
+`X-Skill-Version: 0.27.49` on every call) and the recipes at `https://simple-host.app/recipes/<topic>.md`.
 
 ## Advanced: open only when the job needs it (fetch the URL if the file is not on disk)
 
