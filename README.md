@@ -4,6 +4,12 @@ Describe a website to Claude and it goes online at its own address, with forms t
 
 This plugin bundles the Simple Host skills and the Simple Host connector (`https://simple-host.app/mcp`). The first time Claude needs it, a Simple Host sign-in window opens: sign in with Google or an emailed code, then Allow. After that every chat is signed in.
 
+## Install from the Claude apps
+
+This plugin is in Claude's own directory. Open Claude, then **Customize**, then **Plugins**,
+then **Discover**. Search for **Simple Host**, select it, then choose **Add**. Works on web,
+desktop, and phone, and in Claude Code sessions signed in with the same account.
+
 ## Install in Claude Code
 
 ```
