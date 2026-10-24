@@ -9,10 +9,11 @@ Simple Host publishes static websites at `https://<site>.<handle>.simple-host.ap
 site can save what visitors send (KV, SQLite and files), with visitor sign-in by emailed code or
 Google. Use the signed-in Simple Host connector tools; if they are missing or signed out, ask the
 person to connect Simple Host (https://simple-host.app/install.html). Never ask for, read or pass
-on sign-in codes, API keys or passwords in chat.
+on sign-in codes, API keys or passwords in chat. This server's `/auth.md` lists its configured sign-in methods.
 Your app lists the building tools; call any other tool named here (`connect_domain`,
 `set_site_passcode`, `rollback_site` and the rest) with `run_tool`
 `{"name": ..., "arguments": {...}}`, and use `find_tools` to look up a tool's arguments.
+On self-hosted installs, use the instance connector and returned URLs. Apps are operator opt-ins; use tool text when no screen is offered.
 Photos the person has: give them `create_upload_link`'s `photos_url`; never ask them to convert, resize, or host photos elsewhere.
 
 ## 1. Decide what to build
@@ -53,7 +54,7 @@ preset, sign-in only where the row says, and a line telling the owner how they s
   the files to change, then `update_site` with `keep_other_files: true` and just those files (every
   other live file is kept; `remove_files` drops named paths). Without `keep_other_files` a publish
   replaces the whole site, so a file you leave out is gone. New hours or a new price on a plain
-  page is just this page edit.
+  page is just this page edit. When enabled, `list_sites` also opens My sites with a read-only dashboard.
 - **A request, quote, contact or waitlist form.** Topic `inbox`. No sign-in on the form. Tell the
   owner: "ask me: show my requests" (`storage_sql_query`).
 - **Bookings, reservations and orders.** Topic `booking` (orders: `records`). Sign-in happens when
@@ -121,7 +122,7 @@ the page that uses them. Then the page:
 ## 6. Without the connector
 
 A coding agent with a configured owner credential uses REST (`X-API-Key`, and
-`X-Skill-Version: 0.27.75` on every call) and the recipes at `https://simple-host.app/recipes/<topic>.md`.
+`X-Skill-Version: 0.27.76` on every call) and the recipes at `https://simple-host.app/recipes/<topic>.md`.
 
 ## Advanced: open only when the job needs it (fetch the URL if the file is not on disk)
 
