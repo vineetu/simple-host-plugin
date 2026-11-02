@@ -2,7 +2,7 @@
 
 After building a form, offer to tell the owner when entries arrive. Simple Host supports
 MCP Events and ordinary signed HTTPS webhooks through one engine. Simple Hack uses the same
-engine with personal team or organiser subscriptions. Enterprise needs a separate port.
+engine with personal team or organiser subscriptions. Enterprise has the record events; its site events need a separate port.
 
 If the app supports MCP Events, use `events/list`, then `events/subscribe` with `name`,
 `arguments: {site, storage}`, and `delivery: {mode: "webhook", url, secret}`. The app supplies
@@ -11,6 +11,14 @@ and echoes its `challenge` in a 2xx JSON response with no `type` field. Never in
 Subscribe to `record.added` for new SQLite rows or KV keys, `record.changed` for visitor edits
 and deletions, or `file.uploaded` for a files resource. Owner credential writes do not fire;
 the owner signed in on their own site as a visitor does. Legacy saved data does not fire.
+
+On Simple Host only, the same subscription can also name four site events: `site.deployed` (a
+version went live through a deploy or an active-version change), `domain.status_changed` (a custom
+domain's check status changed, or a long-failing domain was released), `viewer.access_requested`
+(someone signed in with an email that is not on a named-viewers list and reached the no-access
+page, once per person per site per day), and `visitor.signed_up` (a person's first sign-in on the
+site). They carry a visitor ID at most, never an email, and the last two never fire for the owner. Over MCP a
+site event takes `arguments: {site}` only. Simple Hack keeps the three record events.
 
 Without MCP Events, tell the owner to open Notifications in the dashboard, choose their site,
 events, optional storage filter, and HTTPS receiver URL, then Send test. A configured owner
