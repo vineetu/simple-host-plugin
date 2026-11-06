@@ -125,7 +125,7 @@ direct the person to the trusted Keys panel to reconfigure the local client; do 
 
 One call deploys whether or not the site exists yet: `PUT` with `?create=1`
 creates it the first time and publishes a new version after that. Have the
-person create a **deploy-only** key in the Keys panel (tick "Deploy only") and
+person create a **deploy-only** key under Settings, Keys (tick "Deploy only") and
 save it as the repository secret `SIMPLE_HOST_KEY`, then add
 `.github/workflows/deploy.yml` (build first if the site has a build step, and
 archive the build output, not the source):
@@ -182,7 +182,7 @@ lists only the drafts that have never been live. Discard a draft nobody will use
 (it is final, so confirm with the person first; connector: `discard_version`):
 
 ```bash
-curl -fsS -X DELETE "https://simple-host.app/v1/sites/<sitename>/versions/<n>" -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.93"
+curl -fsS -X DELETE "https://simple-host.app/v1/sites/<sitename>/versions/<n>" -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.94"
 ```
 
 200 answers `discarded_version` and `active_version`; 404 `version_not_found`; 409
@@ -195,9 +195,9 @@ Read a retained version's files (owner API key required):
 
 ```bash
 curl -fsS "https://simple-host.app/v1/sites/<sitename>/versions/<n>/files" \
-  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.93"
+  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.94"
 curl -fsS "https://simple-host.app/v1/sites/<sitename>/versions/<n>/files/index.html" \
-  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.93"
+  -H "X-API-Key: <api_key>" -H "X-Skill-Version: 0.27.94"
 ```
 
 The first call returns version metadata and files sorted by relative path with byte
@@ -273,7 +273,7 @@ once every 30 days (429 with `next_change_after` otherwise). The old handle stay
 for the person and every old address redirects to the new one. What pages kept
 in visitors' browsers (localStorage) starts empty at the new address, and
 visitors sign in again, so tell the person before changing it. They can also do
-it themselves under "Your address" on their Simple Host page. Afterwards re-read
+it themselves under Settings, Your address on their Simple Host page. Afterwards re-read
 `site_url` from `GET /v1/sites`; never compose addresses.
 
 ## Change the sign-in email; sign-in alerts
@@ -291,7 +291,7 @@ one used stays). The old address gets a notice with a 7-day undo link.
 Linked Google/GitHub sign-ins stay: `GET /v1/me/identities` lists them and
 `DELETE /v1/me/identities/<id>` unlinks one (only when the person asks).
 Refusals: 400 `not_an_account_key` (a connected app cannot do this; point the
-person to "Sign-in" on their page), `same_email`, `invalid_email`,
+person to Settings, Sign-in on their page), `same_email`, `invalid_email`,
 `codes_required`, `no_pending_change`, `reserved_email`; 401 `invalid_code`;
 403 for the reviewer, admin, event and preview accounts; 409 `email_taken`
 (another account signs in with it).
