@@ -28,28 +28,36 @@ the person's own domain.
 
 | Job | Tool |
 |---|---|
-| Who am I, handle, teams, invitations, use against limits | `who_am_i` |
+| Who am I, handle, teams, invitations, use against limits (emails only with `include_email`) | `who_am_i` |
 | My sites (search; the bin) | `list_sites` (shows the my-sites screen) |
 | Everything about one site: address, versions, access, domain, saved data, rules, use | `get_site` |
 | Put files online, new or changed | `publish_site` |
 | Read one published file | `read_site_file` |
-| Photos or files from the person; a big site as one archive | `create_upload_link` |
-| Offline or back, list on the public page, older version live, restore from bin | `change_site` |
+| Photos or files from the person (the photo picker) | `create_upload_link` |
+| A big site as one archive (replaces the live files; ask first) | `create_site_upload_link` |
+| Offline, or back online | `take_site_offline`, `put_site_online` |
+| Show on the owner's public page, or not | `set_site_listed` |
+| Make an older version live | `rollback_site` |
+| Bring a site back from the bin | `restore_site` |
 | Move a site to the bin (kept 7 days) | `delete_site` |
-| Open, passcode or named viewers; sign everyone out | `set_site_access` |
+| Open to anyone | `open_site_to_anyone` |
+| Passcode (set in a screen in the chat) | `require_passcode` |
+| Only named people; add or remove them | `allow_only_named_people`, `add_site_viewers`, `remove_site_viewers` |
+| Sign everyone out | `sign_out_site_visitors` |
 | Own domain or short name | `set_site_address` |
 | Visit numbers | `site_stats` (shows a dashboard) |
 | Tell the owner when entries arrive or someone asks for access | `set_notifications` |
 | A page recipe: data setup, working page, who sees what | `get_recipe` |
-| Read or fix rows, values, files with your rights | `data` |
-| The owner's SQL on a namespace | `run_sql` |
+| Rows of a table, with your rights | `list_rows`, `read_row`, `add_row`, `change_row`, `delete_row` |
+| Named values (`_values`), with your rights | `list_values`, `read_value`, `set_value`, `delete_value` |
+| A namespace's stored files, with your rights | `list_files`, `save_file`, `delete_file` |
+| The owner's SQL: tables, reads, changes | `list_tables`, `query_sql`, `run_sql` |
 | Who may read, add, change, delete | `set_data_rules` |
 | Handle, display name, home site, one domain for all sites | `update_account` |
 | Teams | `create_team`, `invite_to_team`, `accept_invite`, `remove_from_team`, `delete_team` |
 | Download everything; delete the account | `download_my_data`, `delete_account` |
 
-`admin_overview` and `set_hold` are for the operator only. Site tools take `site` (name or
-address) and, for a team's site, `owner` (the team handle).
+Site tools take `site` (name or address) and, for a team's site, `owner` (the team handle).
 
 ## Publishing
 
@@ -60,8 +68,8 @@ address) and, for a team's site, `owner` (the team handle).
    that anyone with the link can open it, wait for a yes, then `publish_site` with `files` (text)
    and `files_base64` (images, fonts and other binary). It makes the site if it is new.
 4. A site that comes from a build (React, Vue, Astro, Hugo...): publish only the output folder.
-   Many photos or a big build: `create_upload_link` with `kind: "archive"` gives a one-time
-   archive link; run what it says.
+   Many photos or a big build: `create_site_upload_link` gives a one-time archive link that
+   replaces the live files; ask first, then run what it says.
 5. Give the person the returned `url`. If you can open it, check it renders. A bad publish is
    refused whole and the live site stays as it was; fix and publish again.
 
@@ -73,7 +81,7 @@ Visitors sign in with Google or an emailed code, on the site's own address; this
 the owner's account. For a form, bookings, guestbook, portal or gallery call `get_recipe`
 (`inbox`, `public`, `personal`, `comments`, `portal`, `gallery`): publish its page, then run its
 setup (`run_sql`, `set_data_rules`). Tell the person who can see what and how they see entries
-("ask me: show my bookings", which uses `run_sql` or `data`), and offer `set_notifications`.
+("ask me: show my bookings", which uses `query_sql`), and offer `set_notifications`.
 Never use `mailto:` for forms. Rules, SQL and the page helper: `references/storage.md`.
 
 Photos: when the page needs the person's own photos, call `create_upload_link` once the page is
@@ -83,9 +91,11 @@ open). Pass `namespace` only for another store. Never build an upload page for t
 
 ## Who may open a site
 
-`set_site_access`: `open`, `passcode`, or `viewers` (emails the person gave you, nothing else;
-`viewers_add` and `viewers_remove` change the list). For a passcode call with `access:
-"passcode"` and no passcode: a screen in the chat sets or shows it, so it never enters the chat.
+`open_site_to_anyone`, `require_passcode`, or named people: `allow_only_named_people` (replaces
+the list), `add_site_viewers`, `remove_site_viewers` (emails the person gave you, nothing else).
+`require_passcode` opens a screen in the chat that sets or shows the passcode, so it never enters
+the chat. `get_site` counts the named people; pass `include_emails: true` only when the person
+asks who exactly.
 Do not ask for or repeat one. A visitor who is not allowed can press "Ask for access", which
 `set_notifications` with `{"kind":"access"}` tells the owner about.
 
@@ -99,9 +109,10 @@ registrar screens: the `connect-domain` skill.
 ## Ask first
 
 Say exactly what changes, and wait for a yes, before: `delete_site`, `delete_account`,
-`delete_team`, `remove_from_team`, widening who can read or write (`set_data_rules`), changing a
+`delete_team`, `remove_from_team`, deleting saved data (`delete_row`, `delete_value`, `delete_file`,
+a `DELETE` or `DROP` with `run_sql`), widening who can read or write (`set_data_rules`), changing a
 passcode or viewers or signing everyone out, connecting or removing a domain or short name,
-taking a site offline or making an older version live (`change_site`), changing a handle
+taking a site offline (`take_site_offline`) or making an older version live (`rollback_site`), changing a handle
 (`update_account`: old links stop working and the handle is never reusable). Updates the person
 asked for go ahead.
 
